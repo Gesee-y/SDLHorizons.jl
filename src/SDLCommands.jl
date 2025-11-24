@@ -13,17 +13,17 @@ end
 function ApplySDLShader(ren::SDLRender, target, shader::SDLShader, priority=0; pass=:postprocess)
 	cb = get_commandbuffer(ren)
 	action = ApplySDLShaderCmd(shader)
-	add_command!(cb,get_id(target),priority,0, action;pass=pass)
+	add_command!(cb,CRHorizons.get_id(target),priority,0, action;pass=pass)
 end
 
-function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{ApplySDLShaderCmd})
+function CRHorizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{ApplySDLShaderCmd})
 	target = get_resourcefromid(ren, targetid)
     for cmd in commands
         ProcessPixels(cmd.shader,target;ren=ren)
     end
 end
 
-function Horizons.execute_command(ren::SDLRender, targetid, callerid, commands::Vector{DrawTexture2DCmd})
+function CRHorizons.execute_command(ren::SDLRender, targetid, callerid, commands::Vector{DrawTexture2DCmd})
 	target = get_resourcefromid(ren, targetid)
 	caller = get_resourcefromid(ren, callerid)
 	texptr = _get_texture(caller)
@@ -43,7 +43,7 @@ function Horizons.execute_command(ren::SDLRender, targetid, callerid, commands::
     SDL_SetRenderTarget(renderer, ta)
 end
 
-function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawPoint2DCmd})
+function CRHorizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawPoint2DCmd})
 	target = get_resourcefromid(ren, targetid)
     SetRenderTarget(ren, target)
 
@@ -64,7 +64,7 @@ function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Ve
 		SDL_RenderDrawPointsF(ren.data.renderer, points, length(points))
 	end
 end
-function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawLine2DCmd})
+function CRHorizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawLine2DCmd})
 	target = get_resourcefromid(ren, targetid)
     SetRenderTarget(ren, target)
     prev = nothing
@@ -75,7 +75,7 @@ function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Ve
     	prev = col
 	end
 end
-function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawRect2DCmd})
+function CRHorizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawRect2DCmd})
 	target = get_resourcefromid(ren, targetid)
 	SetRenderTarget(ren, target)
 
@@ -103,7 +103,7 @@ function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Ve
 		SDL_RenderFillRectsF(ren.data.renderer, rects, length(rects))
 	end
 end
-function Horizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawCircle2DCmd})
+function CRHorizons.execute_command(ren::SDLRender, targetid, caller, commands::Vector{DrawCircle2DCmd})
 	target = get_resourcefromid(ren, targetid)
 	SetRenderTarget(ren, target)
 

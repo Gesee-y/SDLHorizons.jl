@@ -11,7 +11,7 @@ Change the color of the SDLRender passed in parameters. `col` should be a vector
 Integer with at least 3 component (one for the red, the second for the green, the third for 
 the blue and the last for transparency.)
 """
-@inline function SetDrawColor(ren::SDLRender,@nospecialize(col))
+@inline function CRHorizons.SetDrawColor(ren::SDLRender,@nospecialize(col))
 	
 	# We check if `col` have an alpha component, if not we assign it 255
 	# else we map the alpha value to 0-255
@@ -30,7 +30,7 @@ the blue and the last for transparency.)
 		HORIZON_WARNING.emit = ("Failed to set the color of the renderer $ren.",err)
 	end
 end
-@inline function SetDrawColor(ren::SDLRender,col::Color8)
+@inline function CRHorizons.SetDrawColor(ren::SDLRender,col::Color8)
 	
 	# We set the color of the drawing and check for error
 	if 0 != SDL_SetRenderDrawColor(ren.data.renderer,col.r,col.g,col.b,col.a)

@@ -4,7 +4,8 @@ module SDLHorizons
 
 using Reexport
 using SimpleDirectMediaLayer.LibSDL2
-@reexport using Horizons
+@reexport using CRHorizons
+using ..AssetCrates
 
 export SDLRender, ClearScreen, SetRenderTarget, CreateViewport, SetAlpha, SetAlphaBlendMode
 export SetRenderScale, SetViewportPosition, ClearViewport, ClearTexture, SetScale
@@ -42,7 +43,7 @@ const SDLRender = HRenderer2D{SDLRenderData, SDLObjectData}
 Initialize the SDL backend of Horizon, If everything went well then the `NOTIF_BACKEND_INITED`
 will be emitted with the backend in question.
 """
-function Horizons.InitBackend(::Type{SDLRender},window::Ptr{SDL_Window};vsync=true,accelerated=true)
+function CRHorizons.InitBackend(::Type{SDLRender},window::Ptr{SDL_Window};vsync=true,accelerated=true)
 	flags = SDL_RENDERER_SOFTWARE
 
 	# Will fall back to software render if enable to set accelerated render
@@ -79,7 +80,7 @@ end
 
 This function make a correspondance between SDL_TextureAccess and Horizon TextureAccess
 """
-function Horizons.ConvertAccess(::Type{SDLRender},a::TextureAccess)
+function ConvertAccess(::Type{SDLRender},a::TextureAccess)
 	if a == TEXTURE_STATIC
 		return SDL_TEXTUREACCESS_STATIC
 	elseif a == TEXTURE_STREAMING
@@ -90,7 +91,7 @@ function Horizons.ConvertAccess(::Type{SDLRender},a::TextureAccess)
 
 	return nothing
 end
-Horizons.ConvertAccess(::Type{SDLRender}, a::SDL_TextureAccess) = a
+ConvertAccess(::Type{SDLRender}, a::SDL_TextureAccess) = a
 
 include("SDLTexture.jl")
 include("Surfaces.jl")
@@ -103,7 +104,7 @@ include("SDLCommands.jl")
 This function create a new Viewport for the renderer r.
 Once the viewport created, it's now possible to use textures and surfaces
 """
-function Horizons.CreateViewport(r::SDLRender,w,h,x=0,y=0;scale=1)
+function CRHorizons.CreateViewport(r::SDLRender,w,h,x=0,y=0;scale=1)
 	
 	# We create a blank texture that will be the screen of the viewport
 	# other texture will just be pasted on it.
@@ -124,50 +125,6 @@ function Horizons.CreateViewport(r::SDLRender,w,h,x=0,y=0;scale=1)
 
 		return 
 	end
-end
-
-"""
-	SetViewportPosition(r::SDLRender,x::Int,y::Int)
-
-Set the position of the current viewport.
-"""
-Horizons.SetViewportPosition(r::SDLRender,x::Int,y::Int) = begin
-	v = r.viewport
-
-	if !isdefined(v, :screen)
-		return
-	else
-		get_texture(v.screen).rect.x = x
-		get_texture(v.screen).rect.y = y
-	end
-end
-
-"""
-	SetViewportSize(r::SDLRender,w::Int,h::Int)
-
-Set the size of the current viewport.
-"""
-SetViewportSize(r::SDLRender,w::Int,h::Int) = begin
-	v = r.viewport
-
-	if !isdefined(v, :screen)
-		return
-	else
-		get_texture(v.screen).rect.w = w
-		get_texture(v.screen).rect.h = h
-	end
-end
-
-"""
-	SwapViewport(r::SDLRender,v::SDLViewport)
-
-Change the viewport of the SDLRender `r` to `v`. It returns the old viewport of `r`.
-"""
-function SwapViewport(r::SDLRender,v::SDLViewport)
-	old_v = r.viewport[]
-	r.viewport[] = v
-
-	return old_v
 end
 
 """
@@ -236,13 +193,13 @@ SetScale(obj::SDLObject,s) = (obj.rect.dimensions.x = s; obj.rect.dimensions.y =
 
 This function is used to clear the renderer `ren`(removing everything that has been drawn on it).
 """
-function ClearScreen(ren::SDLRender)
+function CRHorizons.ClearScreen(ren::SDLRender)
 
 	# We first get the current target for rendering
 	ta = SDL_GetRenderTarget(ren.data.renderer)
 
 	# Then we set the target as the renderer
-	SDL_SetRenderTarget(ren.data.renderer,C_NULL)
+	SetRenderTarget(ren, true)
 
 	# And we clear the renderer and check for error
 	if 0 != SDL_RenderClear(ren.data.renderer)
@@ -256,6 +213,7 @@ function ClearScreen(ren::SDLRender)
 
 	# Finally we set back the render target to the previous target
 	SDL_SetRenderTarget(ren.data.renderer,ta)
+	#ClearTexture(ren, get_texture(ren.viewport.screen))
 end
 
 """
@@ -263,18 +221,19 @@ end
 
 This function should be use to clear a viewport.
 """
-function ClearViewport(ren::SDLRender)
+function CRHorizons.ClearViewport(ren::SDLRender)
 	v = ren.viewport
 	# We just clear the screen of the viewport
 	isdefined(v, :screen) && ClearTexture(ren,get_texture(v.screen))
 end
+
 
 """
 	ClearTexture(ren::SDLRender,t::SDLTexture)
 
 This function will clear all the content of an SDL Texture
 """
-function ClearTexture(ren::SDLRender,t::SDLTexture)
+function CRHorizons.ClearTexture(ren::SDLRender,t::SDLTexture)
 	
 	# We get the current target for render
 	ta = SDL_GetRenderTarget(ren.data.renderer)
@@ -295,7 +254,7 @@ function ClearTexture(ren::SDLRender,t::SDLTexture)
 	SDL_SetRenderTarget(ren.data.renderer,ta)
 end
 
-function RenderObject(r::SDLRender,obj::SDLObject; parent=nothing,viewport=true)
+function CRHorizons.RenderObject(r::SDLRender,obj::SDLObject; parent=nothing,viewport=true)
 	tex = get_texture(obj)
 	ro = obj.rect # getting the rect of the texture 
 	rt = tex.rect
@@ -332,7 +291,7 @@ Use this function to make all the change done to the SDL backend visible.
 	end
 	SetRenderTarget(backend)
 end=#
-PresentRender(backend::SDLRender) = SDL_RenderPresent(backend.data.renderer)
+CRHorizons.PresentRender(backend::SDLRender) = SDL_RenderPresent(backend.data.renderer)
 
 """
 	DestroyBackend(backend::SDLRender)
@@ -359,78 +318,6 @@ function DestroyBackend(backend::SDLRender)
 
  	# And emit a signal to let other sub system know it,
  	HORIZON_BACKEND_DESTROYED.emit = backend
-end
-
-# ---------- Helpers ----------- #
-
-# this function will update the main viewport
-function _update_viewport(b::SDLRender,v::SDLViewport;par=v)
-
-	# We get the root the tree of sub viewport
-	subs = get_root(v.subview)
-
-	# And iterate over his childs
-	for n in get_children(subs)
-
-		# we set the render target to the parent of the sub viewport
-		SetRenderTarget(b,par)
-
-		# We update the child recusively
-		_update_viewport(b,n)
-	end
-
-	# We then update the texture of the current viewport
-	_update_viewport_textures(b,v)
-
-	# and the target to the renderer
-	SDL_SetRenderTarget(b.data.renderer,C_NULL)
-
-	# And render the main viewport
-	_render_a_texture(b,v.screen)
-	
-end
-
-# This function will update a sub viewport
-function _update_viewport(b::SDLRender,node::Node;par=get_texture(node[]))
-	
-	# We just get the subviewport from the Node
-	v = node[]
-
-	# Then we iterate over the childrens of the node
-	# So we update the sub viewport recursively
-	for n in get_children(node)
-
-		# We set the render target to the parent viewport 
-		SetRenderTarget(b,par)
-
-		# And update the child sub viewport
-		_update_viewport(b,n;par=v)
-	end
-
-	# Then we update the textures of the sub viewport
-	_update_viewport_textures(b,v)
-
-	# and finally render his screen
-	_render_a_texture(b,get_texture(v.screen))
-
-	# Then we set back the target to the renderer
-	SDL_SetRenderTarget(backend.data.renderer,C_NULL)
-end
-
-# this function will render the textures of a viewport
-function _update_viewport_textures(b::SDLRender,v::SDLViewport)
-	
-	# We first set the viewport to the screen of the viewport
-	SetRenderTarget(b,get_texture(v.screen))
-	tree = v.objects
-
-	# Then we iterate over the node in the root of the texture tree
-	for ch in get_children(get_root(tree))
-
-		# and render them
-		# They will recursively render their childrens texture
-		_render_texture(b,v,ch)
-	end
 end
 
 # Transform real `v` into a valid Color value
