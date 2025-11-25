@@ -26,6 +26,7 @@ end
 function CRHorizons.execute_command(ren::SDLRender, targetid, callerid, commands::Vector{DrawTexture2DCmd})
 	target = get_resourcefromid(ren, targetid)
 	caller = get_resourcefromid(ren, callerid)
+
 	texptr = _get_texture(caller)
 
     renderer = ren.data.renderer
@@ -36,8 +37,9 @@ function CRHorizons.execute_command(ren::SDLRender, targetid, callerid, commands
     for cmd in commands
         ro = cmd.rect # getting the rect of the cmd
 		rect = SDL_FRect(ro.x,ro.y,rt.w*ro.w,rt.h*ro.h)
+		flip = SDL_RendererFlip((cmd.fliph ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE) | (cmd.flipv ? SDL_FLIP_VERTICAL : SDL_FLIP_NONE))
 
-		SDL_RenderCopyF(renderer,texptr,C_NULL,Ref(rect))
+		SDL_RenderCopyExF(renderer,texptr,C_NULL,Ref(rect), cmd.angle, Ref(SDL_FPoint(rt.x, rt.y)), flip)
     end
 
     SDL_SetRenderTarget(renderer, ta)

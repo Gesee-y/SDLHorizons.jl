@@ -4,7 +4,7 @@ module SDLHorizons
 
 using Reexport
 using SimpleDirectMediaLayer.LibSDL2
-@reexport using CRHorizons
+@reexport using ..CRHorizons
 using ..AssetCrates
 
 export SDLRender, ClearScreen, SetRenderTarget, CreateViewport, SetAlpha, SetAlphaBlendMode
