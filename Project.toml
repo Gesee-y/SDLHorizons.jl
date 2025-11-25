@@ -1,14 +1,16 @@
-name = "SDLOutdoors"
+name = "SDLHorizons"
 uuid = "f2ef907b-85bf-40b2-8b45-fabe493c1faa"
 authors = ["Kaptue Elisee"]
 version = "0.1.0"
 
 [deps]
+AssetCrates = "d8559f7b-85bf-40b2-8b45-fabe493c1faa"
 CRHorizons = "d359ef98-a7e3-42d2-87cb-a7a1f294c746"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SimpleDirectMediaLayer = "98e33af6-2ee5-5afd-9e75-cbc738b767c4"
 
 [compat]
+AssetCrates = "0.5"
 CRHorizons = "0.1"
 Reexport = "1.2"
 SimpleDirectMediaLayer = "0.4,0.5"
